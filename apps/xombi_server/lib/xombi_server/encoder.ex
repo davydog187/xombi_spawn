@@ -2,6 +2,7 @@ defmodule XombiServer.Encoder do
   @error 0
   @waiting 1
   @matched 2
+  @moved 3
 
   def waiting(user) do
     encode(@waiting, %{waiting: true, name: user})
@@ -13,6 +14,10 @@ defmodule XombiServer.Encoder do
 
   def matched(player, opponents) do
     encode(@matched, %{ name: player, opponents: opponents})
+  end
+
+  def moved() do
+    encode(@moved, %{})
   end
 
   defp encode(type, message) do

@@ -6,7 +6,7 @@ defmodule XombiServer do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(Task.Supervisor, [[name: XombiServer.TaskSupervisor]]),
+      supervisor(Task.Supervisor, [[name: XombiServer.ConnectionSupervisor]]),
       worker(XombiServer.SocketTable, []),
       worker(Task, [XombiServer, :accept, [4040]]),
     ]
@@ -25,7 +25,7 @@ defmodule XombiServer do
     {:ok, client} = :gen_tcp.accept(socket)
     Logger.info "Got a new socket connection"
 
-    {:ok, pid } = Task.Supervisor.start_child(XombiServer.TaskSupervisor, fn -> register(client) end)
+    {:ok, pid } = Task.Supervisor.start_child(XombiServer.ConnectionSupervisor, fn -> register(client) end)
     :ok = :gen_tcp.controlling_process(client, pid)
     loop_acceptor(socket)
   end
@@ -40,7 +40,6 @@ defmodule XombiServer do
   defp serve(socket) do
     socket
     |> read_line()
-    |> write_line(socket)
 
     serve(socket)
   end
@@ -62,7 +61,6 @@ defmodule XombiServer do
     # TODO this is bad, will crash the handling process if the socket
     # is down
     {:ok, socket} = XombiServer.SocketTable.get(player)
-    #player_names = display_player_names(players, player)
     write_line(XombiServer.Encoder.matched(player, filter_players(players, player)), socket)
   end
 
@@ -70,13 +68,24 @@ defmodule XombiServer do
     Enum.filter(players, fn player -> player != exclude_player end)
   end
 
+  defp dispatch_message(username, message) do
+    case message do
+      #%XombiMatch.Types.Move{} -> 
+      _ -> {:ok, "hello"}
+    end
+  end
+
   defp read_line(socket) do
     {:ok, data} = :gen_tcp.recv(socket, 0)
-    data
+
+    with  {:ok, username, message} <- XombiServer.Decoder.decode(data),
+    {:ok, response} <- dispatch_message(username, message),
+    do: Logger.info "For #{username} got #{inspect(message)}"
   end
 
   defp write_line(line, socket) do
     Logger.info "Sending #{line}"
     :gen_tcp.send(socket, line)
   end
+
 end

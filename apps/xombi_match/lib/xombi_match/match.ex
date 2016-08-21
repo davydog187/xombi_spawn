@@ -1,10 +1,16 @@
 defmodule XombiMatch.Match do
+  alias XombiMatch.Types.Move
+  require Logger
 
   @doc """
   Starts a new match.
   """
   def start_link do
-    Agent.start_link(fn -> %{} end)
+    Agent.start_link(fn -> %{ player1: %Move{}, player2: %Move{} } end, name: __MODULE__)
+    Logger.info "Started #{__MODULE__}"
+  end
+
+  def player_move(_player, _movement) do
   end
 
   @doc """
