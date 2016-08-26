@@ -6,13 +6,15 @@ defmodule XombiMatch.Match.Supervisor do
   end
 
   def init(:ok) do
-    children = []
+    children = [
+      worker(XombiMatch.Match, [], restart: :transient)
+    ]
 
-    supervise(children, strategy: :one_for_one)
+    supervise(children, strategy: :simple_one_for_one)
   end
 
   def start_child() do
-    Supervisor.start_child(__MODULE__, worker(XombiMatch.Match, []))
+    Supervisor.start_child(__MODULE__, [])
   end
 
 end
