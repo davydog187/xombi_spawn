@@ -9,9 +9,8 @@ defmodule XombiMatch do
     # Define workers and child supervisors to be supervised
     children = [
       # Starts a worker by calling: XombiMatch.Worker.start_link(arg1, arg2, arg3)
-      supervisor(Task.Supervisor, [[name: XombiMatch.MatchSupervisor]]),
+      supervisor(XombiMatch.Match.Supervisor, [[name: XombiMatch.Match.Supervisor]]),
 
-      # TODO the Lobby probably needs a supervisor?
       worker(XombiMatch.Lobby, []),
     ]
 

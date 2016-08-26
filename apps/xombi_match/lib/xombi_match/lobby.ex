@@ -1,5 +1,6 @@
 defmodule XombiMatch.Lobby do
   require Logger
+  alias XombiMatch.Match
 
   def start_link do
     Logger.info "Starting #{__MODULE__}"
@@ -21,8 +22,8 @@ defmodule XombiMatch.Lobby do
   end
 
   defp match_players(waiting, player) do
-    {:ok, pid} = Task.Supervisor.start_child(XombiMatch.MatchSupervisor, XombiMatch.Match, :start_link, [])
-    Agent.update(__MODULE__, fn state -> %{ state | waiting: [pid | state.waiting]} end)
+    {:ok, pid} = XombiMatch.Match.Supervisor.start_child()
+    Agent.update(__MODULE__, fn state -> %{ state | waiting: []} end)
     {:matched, [waiting, player]}
   end
 

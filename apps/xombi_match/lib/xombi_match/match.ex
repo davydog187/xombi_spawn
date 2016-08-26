@@ -1,30 +1,34 @@
 defmodule XombiMatch.Match do
   alias XombiMatch.Types.Move
+  use GenServer
   require Logger
 
   @doc """
   Starts a new match.
   """
   def start_link do
-    Agent.start_link(fn -> %{ player1: %Move{}, player2: %Move{} } end, name: __MODULE__)
-    Logger.info "Started #{__MODULE__}"
+    Logger.info "Starting #{__MODULE__}"
+    GenServer.start_link(__MODULE__, :ok)
   end
 
-  def player_move(_player, _movement) do
+  def init(:ok) do
+    {:ok, %{player1: %Move{}, player2: %Move{}}}
   end
 
-  @doc """
-  Gets a value from the `bucket` by `key`.
-  """
-  def get(match, key) do
-    Agent.get(match, &Map.get(&1, key))
+  def get_player_move(pid, player) when is_atom(player) do
+    GenServer.call(pid, {:get_move, player})
   end
 
-  @doc """
-  Puts the `value` for the given `key` in the `bucket`.
-  """
-  def put(match, key, value) do
-    Agent.update(match, &Map.put(&1, key, value))
+  def move_player(pid, player, move = %Move{}) when is_atom(player) do
+    GenServer.cast(pid, {:move_player, player, move})
+  end
+
+  def handle_call({:get_move, player} , _from, state) do
+    {:reply, state[player], state}
+  end
+
+  def handle_cast({:move_player, player, move}, state) do
+    {:noreply, Map.put(state, player, move)}
   end
 
 end
