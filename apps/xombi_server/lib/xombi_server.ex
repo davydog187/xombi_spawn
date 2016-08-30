@@ -39,18 +39,29 @@ defmodule XombiServer do
 
   defp serve(socket) do
     socket
-    |> read_line()
+    |> read_move()
 
     serve(socket)
   end
 
+  defp read_move(socket) do
+    {:ok, data} = :gen_tcp.recv(socket, 0)
+
+    case XombiServer.Command.run(data) do
+      {:move, move} -> Logger.info "got move #{inspect move}"
+      {:error, error} -> Logger.info "Bad input for move #{error}"
+    end
+  end
+
   defp read_registration(socket) do
     {:ok, data} = :gen_tcp.recv(socket, 0);
+    Logger.info "Got data #{inspect data}"
 
-    {:ok, id} = XombiServer.Command.expect_registration(data)
-    XombiServer.SocketTable.set(id, socket)
+    {:register, player_name} = XombiServer.Command.run(data)
+    Logger.info "Registering #{player_name}"
+    XombiServer.SocketTable.set(player_name, socket)
 
-    case XombiServer.Command.request_match(id) do
+    case XombiServer.Command.request_match(player_name) do
       {:waiting, player} -> write_line(XombiServer.Encoder.waiting(player), socket)
       {:matched, players} -> Enum.map(players, fn current_player -> send_match_message(current_player, players) end)
       {:error, message} -> write_line(XombiServer.Encoder.error(message), socket)
@@ -70,12 +81,12 @@ defmodule XombiServer do
 
   defp dispatch_message(username, message) do
     case message do
-      #%XombiMatch.Types.Move{} -> 
+      #%XombiMatch.Types.Move{} ->
       _ -> {:ok, "hello"}
     end
   end
 
-  defp read_line(socket) do
+  defp read_username(socket) do
     {:ok, data} = :gen_tcp.recv(socket, 0)
 
     with  {:ok, username, message} <- XombiServer.Decoder.decode(data),

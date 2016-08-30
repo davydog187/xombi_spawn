@@ -23,7 +23,7 @@ defmodule XombiMatch.Match do
     GenServer.cast(pid, {:move_player, player, move})
   end
 
-  def handle_call({:get_move, player} , _from, state) do
+  def handle_call({:get_move, player}, _from, state) do
     {:reply, state[player], state}
   end
 
