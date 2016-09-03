@@ -6,9 +6,11 @@ defmodule XombiServer do
     import Supervisor.Spec, warn: false
 
     children = [
+      worker(Task, [XombiServer, :accept, [4040]]),
       supervisor(Task.Supervisor, [[name: XombiServer.ConnectionSupervisor]]),
       worker(XombiServer.SocketTable, []),
-      worker(Task, [XombiServer, :accept, [4040]]),
+      supervisor(XombiMatch.Match.Supervisor, [[name: XombiMatch.Match.Supervisor]]),
+      worker(XombiMatch.Lobby, []),
     ]
 
     opts = [strategy: :one_for_one, name: XombiServer.Supervisor]
