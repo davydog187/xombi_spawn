@@ -27,7 +27,7 @@ defmodule XombiServer.Command do
   end
 
   defp handle(error) do
-    :error
+    {:error, error}
   end
 
  def request_match(name) do

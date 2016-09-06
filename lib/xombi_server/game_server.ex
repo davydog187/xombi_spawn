@@ -14,6 +14,7 @@ defmodule XombiServer.GameServer do
 
     Logger.info "Accepting connections on port #{state.port}"
 
+    # TODO take a number into the GameServer state and spawn that number of acceptor tasks
     {:ok, _pid} = Task.Supervisor.start_child(XombiServer.ConnectionSupervisor, fn -> accept(socket) end)
 
     {:ok, %{state | socket: socket}}
@@ -26,35 +27,6 @@ defmodule XombiServer.GameServer do
     :ok = :gen_tcp.controlling_process(client, pid)
 
     accept(socket)
-  end
-
- defp read_registration(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0);
-
-    {:register, player_name} = XombiServer.Command.run(data)
-    Logger.info "Registering #{player_name}"
-    XombiServer.SocketTable.set(player_name, socket)
-
-    player_name
-  end
-
-  defp send_match_message(player, players) do
-    # TODO this is bad, will crash the handling process if the socket
-    # is down
-    {:ok, socket} = XombiServer.SocketTable.get(player)
-    write_line(XombiServer.Encoder.matched(player, filter_players(players, player)), socket)
-  end
-
-  defp filter_players(players, exclude_player) do
-    Enum.filter(players, fn player -> player != exclude_player end)
-  end
-
-  defp read_username(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-
-    with {:ok, username, message} <- XombiServer.Decoder.decode(data),
-    {:ok, response} <- dispatch_message(username, message),
-    do: Logger.info "For #{username} got #{inspect(message)}"
   end
 
 end

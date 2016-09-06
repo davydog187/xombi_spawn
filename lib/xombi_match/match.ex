@@ -29,8 +29,8 @@ defmodule XombiMatch.Match do
 
   def handle_cast({:move_player, player, move}, state) do
     Logger.info("Moving player #{player} to #{inspect move}")
-    GenServer.cast(state.player1_pid, {:move, move})
-    GenServer.cast(state.player2_pid, {:move, move})
+    GenServer.cast(state.player1_pid, {:move, player, move})
+    GenServer.cast(state.player2_pid, {:move, player, move})
     {:noreply, Map.put(state, player, move)}
   end
 

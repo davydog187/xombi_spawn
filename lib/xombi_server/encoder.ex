@@ -16,8 +16,8 @@ defmodule XombiServer.Encoder do
     encode(@matched, %{ name: player, opponents: opponents})
   end
 
-  def moved() do
-    encode(@moved, %{})
+  def moved(player, move) do
+    encode(@moved, %{name: player, move: move})
   end
 
   defp encode(type, message) do

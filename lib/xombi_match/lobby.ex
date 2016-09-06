@@ -1,7 +1,6 @@
 defmodule XombiMatch.Lobby do
   use GenServer
   require Logger
-  alias XombiMatch.Match
 
   def start_link do
     Logger.info "Starting #{__MODULE__} #{inspect self}"
@@ -39,6 +38,7 @@ defmodule XombiMatch.Lobby do
     {:ok, match_pid} = XombiMatch.Match.Supervisor.start_child(waiting_pid, player_pid)
     Agent.update(__MODULE__, fn state ->
       new_player_match = Map.put(state[:player_to_match], player, match_pid)
+        |> Map.put(waiting_player, match_pid)
       %{ state | waiting: [], matches: [match_pid | state.matches], player_to_match: new_player_match}
     end)
 
