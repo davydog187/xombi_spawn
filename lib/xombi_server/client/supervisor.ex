@@ -1,4 +1,4 @@
-defmodule XombiMatch.Match.Supervisor do
+defmodule Client.Supervisor do
   use Supervisor
 
   def start_link(options) do
@@ -7,14 +7,14 @@ defmodule XombiMatch.Match.Supervisor do
 
   def init(:ok) do
     children = [
-      worker(XombiMatch.Match, [], restart: :transient)
+      worker(Client.ConnectionHandler, [], restart: :transient)
     ]
 
     supervise(children, strategy: :simple_one_for_one)
   end
 
-  def start_child(p1, p2) do
-    Supervisor.start_child(__MODULE__, [p1, p2])
+  def start_child(socket) do
+    Supervisor.start_child(__MODULE__, [socket])
   end
 
 end
